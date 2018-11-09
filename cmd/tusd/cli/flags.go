@@ -27,6 +27,10 @@ var Flags struct {
 
 	FileHooksInstalled bool
 	HttpHooksInstalled bool
+
+	AWSContainer string
+	AWSAccount string
+	AWSKey  string
 }
 
 func ParseFlags() {
@@ -48,6 +52,10 @@ func ParseFlags() {
 	flag.BoolVar(&Flags.ExposeMetrics, "expose-metrics", true, "Expose metrics about tusd usage")
 	flag.StringVar(&Flags.MetricsPath, "metrics-path", "/metrics", "Path under which the metrics endpoint will be accessible")
 	flag.BoolVar(&Flags.BehindProxy, "behind-proxy", false, "Respect X-Forwarded-* and similar headers which may be set by proxies")
+	flag.StringVar(&Flags.AWSContainer,"container", "alexcontainertest3", "the name of the container to be used")
+	flag.StringVar(&Flags.AWSAccount, "account", "teststorage", "service name: teststorage")
+	flag.StringVar(&Flags.AWSKey,"key", "xxxxx", "storage access key")
+
 
 	flag.Parse()
 
@@ -70,4 +78,5 @@ func ParseFlags() {
 			"neither flag was provided. Please consult `tusd -help` for " +
 			"more information on these options.")
 	}
+	
 }
