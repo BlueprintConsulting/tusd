@@ -32,7 +32,8 @@ func (store AzureStore) writeDataToFileInBlob(data []byte, container string, lea
 
 	credential, err := azblob.NewSharedKeyCredential(store.AccountName, store.AccountKey)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error encountered %s", err)
+		return err
 	}
 
 	p := azblob.NewPipeline(credential, azblob.PipelineOptions{})
@@ -54,7 +55,8 @@ func (store AzureStore) writeDataToFileInBlob(data []byte, container string, lea
 		_, err = containerURL.Create(ctx, azblob.Metadata{}, azblob.PublicAccessNone)
 		log.Println("Container created", container)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Errorf("Error encountered %s", err)
+			return err
 		}
 
 	}
@@ -76,7 +78,8 @@ func (store AzureStore) writeDataToFileInBlob(data []byte, container string, lea
 			_, err := blobURL.AppendBlock(ctx, newReaderSeeker, blobAccessConditions, nil)
 
 			if err != nil {
-				log.Fatal(err)
+				fmt.Errorf("Error encountered %s", err)
+				return err
 			}
 		}
 	} else {
@@ -86,7 +89,8 @@ func (store AzureStore) writeDataToFileInBlob(data []byte, container string, lea
 		//will do a 0 bytes upload
 		_, err = blobURL.Upload(ctx, bytes.NewReader(data), azblob.BlobHTTPHeaders{ContentType: "text/plain"}, azblob.Metadata{}, azblob.BlobAccessConditions{})
 		if err != nil {
-			log.Fatal(err)
+			fmt.Errorf("Error encountered %s", err)
+			return err
 		}
 	}
 
@@ -139,7 +143,8 @@ func (store AzureStore) WriteChunk(id string, offset int64, src io.Reader) (int6
 
 	credential, err := azblob.NewSharedKeyCredential(store.AccountName, store.AccountKey)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error encountered %s", err)
+		return -1, err
 	}
 
 	p := azblob.NewPipeline(credential, azblob.PipelineOptions{})
@@ -160,7 +165,8 @@ func (store AzureStore) WriteChunk(id string, offset int64, src io.Reader) (int6
 
 	destinationBytes, err := ioutil.ReadAll(src)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error encountered %s", err)
+		return -1, err
 	}
 	println("Using ioutil all the bytes were read", len(destinationBytes))
 
@@ -173,7 +179,7 @@ func (store AzureStore) WriteChunk(id string, offset int64, src io.Reader) (int6
 	appendBlockResponse, err := blobURL.AppendBlock(ctx, newReaderSeeker, blobAccessConditions, nil)
 	log.Println("Received response", appendBlockResponse)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 	return int64(len(destinationBytes)), err
 }
@@ -183,7 +189,8 @@ func (store AzureStore) LockUpload(id string) error {
 
 	credential, err := azblob.NewSharedKeyCredential(store.AccountName, store.AccountKey)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error encountered %s", err)
+		return err
 	}
 
 	p := azblob.NewPipeline(credential, azblob.PipelineOptions{})
@@ -212,7 +219,8 @@ func (store AzureStore) LockUpload(id string) error {
 	if err != nil {
 		currentStack := debug.Stack()
 		strStack := string(currentStack)
-		log.Fatal("[AzureStore.LockUpload][Error]Stack", strStack, err)
+		fmt.Errorf("Error encountered %s", "[AzureStore.LockUpload][Error]Stack", strStack, err)
+		return err
 	}
 	return err
 }
@@ -222,7 +230,8 @@ func (store AzureStore) UnlockUpload(id string) error {
 
 	credential, err := azblob.NewSharedKeyCredential(store.AccountName, store.AccountKey)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error encountered %s", err)
+		return err
 	}
 
 	p := azblob.NewPipeline(credential, azblob.PipelineOptions{})
@@ -279,7 +288,8 @@ func (store AzureStore) GetInfo(id string) (tusd.FileInfo, error) {
 
 	credential, err := azblob.NewSharedKeyCredential(store.AccountName, store.AccountKey)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error encountered %s", err)
+		return tusd.FileInfo{},err
 	}
 
 	p := azblob.NewPipeline(credential, azblob.PipelineOptions{})
@@ -299,7 +309,8 @@ func (store AzureStore) GetInfo(id string) (tusd.FileInfo, error) {
 
 	get, err := metadataFileInfoURL.Download(ctx, 0, 0, azblob.BlobAccessConditions{}, false)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Errorf("Error encountered %s", err)
+		return tusd.FileInfo{},err
 	}
 
 	info := tusd.FileInfo{ID: id}
@@ -315,7 +326,8 @@ func (store AzureStore) GetInfo(id string) (tusd.FileInfo, error) {
 	for marker := (azblob.Marker{}); marker.NotDone(); {
 		listBlob, err := containerURL.ListBlobsFlatSegment(ctx, marker, azblob.ListBlobsSegmentOptions{Prefix: id})
 		if err != nil {
-			log.Fatal(err)
+			fmt.Errorf("Error encountered %s", err)
+			return tusd.FileInfo{},err
 		}
 
 		marker = listBlob.NextMarker
